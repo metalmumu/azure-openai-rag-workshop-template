@@ -1,12 +1,30 @@
 import { type ChatResponse, type ChatRequestOptions, type ChatResponseChunk } from './models.js';
 
-export const apiBaseUrl = import.meta.env.VITE_CHAT_API_URI || '';
+export const apiBaseUrl = import.meta.env.VITE_BACKEND_API_URI || '';
 
 export async function getCompletion(options: ChatRequestOptions, oneShot = false) {
   const apiUrl = options.apiUrl || apiBaseUrl;
-
-  // TODO: complete call to Chat API here
-  // const response =
+  const response = await fetch(`${apiUrl}/${oneShot ? 'ask' : 'chat'}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      messages: options.messages,
+      stream: !oneShot && options.stream,
+      context: {
+        approach: options.approach,
+        retrieval_mode: options.retrievalMode,
+        semantic_ranker: options.semanticRanker,
+        semantic_captions: options.semanticCaptions,
+        top: options.top,
+        temperature: options.temperature,
+        prompt_template: options.promptTemplate,
+        prompt_template_prefix: options.promptTemplatePrefix,
+        prompt_template_suffix: options.promptTemplateSuffix,
+        exclude_category: options.excludeCategory,
+        suggest_followup_questions: options.suggestFollowupQuestions,
+      },
+    }),
+  });
 
   if (options.stream) {
     return getChunksFromResponse<ChatResponseChunk>(response as Response, options.chunkIntervalMs);
@@ -64,4 +82,3 @@ export async function* getChunksFromResponse<T>(response: Response, intervalMs: 
     });
   }
 }
-
